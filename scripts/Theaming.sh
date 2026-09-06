@@ -126,6 +126,9 @@ else
 	echo -e "${Blue} ${White}[${Yellow}!${White}] betterlockscreen no esta instalado, se omite el lock wallpaper"
 fi
 echo ""
+# Limpiar reglas vivas de bspwm para que no queden reglas de temas anteriores
+# (p.ej. regla flotante de kitty) al recargar
+while bspc rule -l | grep -q .; do bspc rule -r; done
 bspc wm -r
 #polybar-msg cmd restart
 echo -e " ${White}[${Cyan}i${White}] ${Red}[${theme}]${White} theme applied correctly (${mode} mode)"
