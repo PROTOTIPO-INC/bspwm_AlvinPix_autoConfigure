@@ -310,19 +310,18 @@ if [ $quest = Y ]; then
 		sleep 2
 		cd ${RUTE}
 		cp -r .themes ${LOCALPATH}
-		chmod +x ${LOCALPATH}/.themes/Camila/bspwmrc		#8
+		chmod +x ${LOCALPATH}/.themes/*/bspwmrc
+		chmod +x ${LOCALPATH}/.themes/*/scripts/*.sh
 		echo ""
 		echo -e "${White} [${Blue}+${White}] Installing theme ${Red}Camila"
-		sleep 2
-		chmod +x ${LOCALPATH}/.themes/Camila/scripts/ethernet_status.sh
-		chmod +x ${LOCALPATH}/.themes/Camila/scripts/machine_target.sh
-		chmod +x ${LOCALPATH}/.themes/Camila/scripts/vpn_status.sh
 		echo ""
 		echo -e "${White} [${Blue}i${White}] Step 11 installing bspwm scripts and bin"
 		sleep 2
 		cd ${RUTE}
 		cp -r scripts ${LOCALPATH}
-		chmod +x ${LOCALPATH}/scripts/*.sh
+		find ${LOCALPATH}/scripts -type f \( -name '*.sh' -o -name 'colorscript.sh' \) -exec chmod +x {} \;
+		chmod +x ${LOCALPATH}/scripts/colorscripts/*
+		chmod +x ${LOCALPATH}/scripts/wall-scripts/*.sh
 		mkdir -p ${LOCALPATH}/.config/bin
 		cp -r .config/bin/* ${LOCALPATH}/.config/bin/
 		chmod +x ${LOCALPATH}/.config/bin/*
@@ -341,7 +340,16 @@ if [ $quest = Y ]; then
 		git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 		~/.fzf/install
 		echo ""
-		echo -e "${White} [${Blue}i${White}] Step 13 installing voice assistant dependencies (python3, anthropic, openai, espeak)"
+		echo -e "${White} [${Blue}i${White}] Step 13 clone pipes, ghostscript and falcon repositories"
+		sleep 2
+		echo ""
+		cd ${LOCALPATH}/scripts ; git clone https://github.com/pipeseroni/pipes.sh.git
+		echo ""
+		cd ${LOCALPATH}/scripts ; git clone https://github.com/AlvinPix/Ghost-script.git
+		echo ""
+		cd ${LOCALPATH}/scripts ; git clone https://github.com/AlvinPix/Falcon.git
+		echo ""
+		echo -e "${White} [${Blue}i${White}] Step 14 installing voice assistant dependencies (python3, anthropic, openai, espeak)"
 		sleep 2
 		echo ""
 		sudo apt install -y python3 python3-pip espeak-ng alsa-utils

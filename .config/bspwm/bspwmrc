@@ -5,7 +5,7 @@
 # | _ \__ \  _/\ \/\/ /| |\/| | | (_| (_) | .` | _| | | (_ |
 # |___/___/_|   \_/\_/ |_|  |_|  \___\___/|_|\_|_| |___\___|
 # AlvinPix: https://github.com/AlvinPix/bspwm.git
-# Colortheme: Camila
+# Colortheme: Xavier
 # xprop | grep WM_CLASS
 
 pgrep -x sxhkd > /dev/null || sxhkd &
@@ -43,4 +43,4 @@ bspc rule -a 'Synaptic' state=floating follow=on
 
 picom &
 ${HOME}/.config/polybar/launch.sh --cuts &
-${HOME}/.config/bin/selector_random_wallpaper.sh &
+${HOME}/scripts/wall-scripts/xavier_wal.sh &
