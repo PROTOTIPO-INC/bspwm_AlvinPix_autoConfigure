@@ -17,6 +17,9 @@ setopt promptsubst         # enable command substitution in prompt
 
 WORDCHARS=${WORDCHARS//\/} # Don't consider certain characters part of the word
 
+# Mostrar el logo (output de consola debe ir ANTES del instant prompt de p10k)
+bash ${HOME}/scripts/colorscript.sh -r
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -502,7 +505,6 @@ alias clsram="sudo sync && sudo sysctl -w vm.drop_caches=3"
 #alias metasrule="cat /home/alvinpix/Escritorio/PX-games/Services/metasrule"
 alias cachefont="fc-cache -fv"
 alias colorscript="bash ${HOME}/scripts/colorscript.sh -r"
-bash ${HOME}/scripts/colorscript.sh -r
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
