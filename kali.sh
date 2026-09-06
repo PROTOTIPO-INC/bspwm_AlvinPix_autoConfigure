@@ -322,6 +322,7 @@ if [ $quest = Y ]; then
 		sleep 2
 		cd ${RUTE}
 		cp -r scripts ${LOCALPATH}
+		chmod +x ${LOCALPATH}/scripts/*.sh
 		mkdir -p ${LOCALPATH}/.config/bin
 		cp -r .config/bin/* ${LOCALPATH}/.config/bin/
 		chmod +x ${LOCALPATH}/.config/bin/*

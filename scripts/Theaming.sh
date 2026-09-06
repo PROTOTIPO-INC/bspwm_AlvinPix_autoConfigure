@@ -120,7 +120,11 @@ mkdir -p ${CONDIR}/.cache
 echo "${theme}" > ${CONDIR}/.cache/active_theme
 
 echo ""
-betterlockscreen -u ${tdir}/wallpapers/wal-0.png
+if command -v betterlockscreen >/dev/null 2>&1; then
+	betterlockscreen -u ${tdir}/wallpapers/wal-0.png
+else
+	echo -e "${Blue} ${White}[${Yellow}!${White}] betterlockscreen no esta instalado, se omite el lock wallpaper"
+fi
 echo ""
 bspc wm -r
 #polybar-msg cmd restart
