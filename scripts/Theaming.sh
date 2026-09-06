@@ -128,7 +128,7 @@ fi
 echo ""
 # Limpiar reglas vivas de bspwm para que no queden reglas de temas anteriores
 # (p.ej. regla flotante de kitty) al recargar
-while bspc rule -l | grep -q .; do bspc rule -r; done
+bspc rule -r '*'
 bspc wm -r
 #polybar-msg cmd restart
 echo -e " ${White}[${Cyan}i${White}] ${Red}[${theme}]${White} theme applied correctly (${mode} mode)"
