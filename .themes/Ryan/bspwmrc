@@ -28,7 +28,8 @@ bspc config focus_follows_pointer true
 bspc config pointer_follows_focus true
 bspc config paddingless_monocle true
 
-bspc rule -a 'kitty' state=floating rectangle=1000x600+150+150 center=true
+# kitty abre en tile (pantalla completa); el menu de temas usa rezise.sh para centrarla
+# bspc rule -a 'kitty' state=floating rectangle=1000x600+150+150 center=true
 bspc rule -a 'Google-chrome' desktop='I'
 bspc rule -a 'firefox' desktop='I'
 bspc rule -a 'SimpleScreenRecorder' state=floating follow=on
