@@ -127,8 +127,9 @@ else
 fi
 echo ""
 # Limpiar reglas vivas de bspwm para que no queden reglas de temas anteriores
-# (p.ej. regla flotante de kitty) al recargar
-bspc rule -r '*'
+# (p.ej. regla flotante de kitty) al recargar. 'head' borra la primera regla
+# de la lista hasta vaciarla, funciona en todas las versiones de bspwm.
+while bspc rule -l | grep -q .; do bspc rule -r head; done
 bspc wm -r
 #polybar-msg cmd restart
 echo -e " ${White}[${Cyan}i${White}] ${Red}[${theme}]${White} theme applied correctly (${mode} mode)"
