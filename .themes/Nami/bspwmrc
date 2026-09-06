@@ -42,6 +42,9 @@ bspc rule -a 'Synaptic' state=floating follow=on
 
 # Auto-Start
 
+# VMware clipboard (copy/paste con el host)
+pgrep -a vmtoolsd >/dev/null || vmtoolsd -n vmusr &
+
 picom &
 ${HOME}/.config/polybar/launch.sh --cuts &
 ${HOME}/scripts/wall-scripts/nami_wal.sh &
