@@ -78,13 +78,13 @@ status() {
         printf -v ICON "\uf026"
     fi
 
-    # barras inclinadas gruesas (U+2571 = ╱), 10 segmentos
+    # barras diagonales gruesas (U+27CB = ⟋), 10 segmentos
     FILL=$(( (VOL * 10) / 100 ))
     [ $FILL -lt 0 ] && FILL=0
     [ $FILL -gt 10 ] && FILL=10
     EMPTY=$(( 10 - FILL ))
 
-    printf -v BAR "\u2571"
+    printf -v BAR "\u27cb"
 
     FILLED=""
     i=0
@@ -93,7 +93,7 @@ status() {
     i=0
     while [ $i -lt $EMPTY ]; do EMPTIES="${EMPTIES}${BAR}"; i=$((i+1)); done
 
-    echo "%{F#${ACCENT#\#}}${ICON} %{F-}%{T3}%{F#${ACCENT#\#}}${FILLED}%{F-}%{F#606060}${EMPTIES}%{F-}%{T-}"
+    echo "%{F#${ACCENT#\#}}${ICON} %{F-}%{F#${ACCENT#\#}}${FILLED}%{F-}%{F#606060}${EMPTIES}%{F-}"
 }
 
 case $1 in
