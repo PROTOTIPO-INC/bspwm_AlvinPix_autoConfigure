@@ -12,18 +12,18 @@ MENU="$(rofi -no-config -no-lazy-grab -sep "|" -dmenu -i -p '' \
 <<< " Ghost| Falcon| Updates| Wifi|")"
             case "$MENU" in
 *Ghost)
-kitty -o ~/.config/kitty/kitty.conf --hold -- bash -c "cd $USERDIR && ./rezise.sh && cd $GHOSTDIR && sudo ./Ghost.sh"
+kitty -o ~/.config/kitty/kitty.conf --hold -- bash -c "cd $USERDIR && bash rezise.sh; cd $GHOSTDIR && sudo ./Ghost.sh"
 ;;
 
 *Falcon)
-kitty -o ~/.config/kitty/kitty.conf --hold -- bash -c "cd $USERDIR && ./rezise.sh && cd $FALCONDIR && ./falcon.sh"
+kitty -o ~/.config/kitty/kitty.conf --hold -- bash -c "cd $USERDIR && bash rezise.sh; cd $FALCONDIR && ./falcon.sh"
 ;;
 
 *Updates)
-kitty -o ~/.config/kitty/kitty.conf --hold -- bash -c "cd $USERDIR && ./rezise.sh && cd $USERDIR && sudo ./updates.sh"
+kitty -o ~/.config/kitty/kitty.conf --hold -- bash -c "cd $USERDIR && bash rezise.sh; cd $USERDIR && sudo ./updates.sh"
 ;;
 
 *Wifi)
-kitty -o ~/.config/kitty/kitty.conf --hold -- bash -c "cd $USERDIR && ./rezise.sh && cd $USERDIR && ./wifi.sh"
+kitty -o ~/.config/kitty/kitty.conf --hold -- bash -c "cd $USERDIR && bash rezise.sh; cd $USERDIR && ./wifi.sh"
 ;;
         esac
