@@ -1,14 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 # volume.sh
 # PulseAudio Volume Control Script
-# Usage: volume.sh [up|down|mute]
+# Usage: volume.sh [up|down|mute|status]
 
 # Author: Enríquez González https://github.com/AlvinPix
 # instagram: @alvinpx_271
 # facebook: @alvin.gonzalez.13139
 
 if [ $# -ne 1 ]; then
-    echo "Usage: $(basename $0) [up|down|mute]"
+    echo "Usage: $(basename $0) [up|down|mute|status]"
     exit 65
 fi
 
@@ -56,6 +56,46 @@ mute() {
     pactl set-sink-mute @DEFAULT_SINK@ toggle
 }
 
+status() {
+    getvol
+    getmute
+
+    # color acento del tema activo (colors.ini lo actualiza el theme)
+    ACCENT="#344A4B"
+    if [ -f ~/.config/polybar/cuts/colors.ini ]; then
+        ACCENT=$(grep -oP '^\s*primary\s*=\s*\K\S+' ~/.config/polybar/cuts/colors.ini | head -1)
+        [ -z "$ACCENT" ] && ACCENT="#344A4B"
+    fi
+
+    # iconos Nerd Font: U+F026 mute/off, U+F027 low, U+F028 high
+    if [ "$MUTED" = "yes" ]; then
+        printf -v ICON "\uf026"
+    elif [ "$VOL" -ge 67 ]; then
+        printf -v ICON "\uf028"
+    elif [ "$VOL" -ge 34 ]; then
+        printf -v ICON "\uf027"
+    else
+        printf -v ICON "\uf026"
+    fi
+
+    # barras inclinadas gruesas (U+2571 = ╱), 10 segmentos
+    FILL=$(( (VOL * 10) / 100 ))
+    [ $FILL -lt 0 ] && FILL=0
+    [ $FILL -gt 10 ] && FILL=10
+    EMPTY=$(( 10 - FILL ))
+
+    printf -v BAR "\u2571"
+
+    FILLED=""
+    i=0
+    while [ $i -lt $FILL ]; do FILLED="${FILLED}${BAR}"; i=$((i+1)); done
+    EMPTIES=""
+    i=0
+    while [ $i -lt $EMPTY ]; do EMPTIES="${EMPTIES}${BAR}"; i=$((i+1)); done
+
+    echo "%{F#${ACCENT#\#}}${ICON} %{F-}%{T3}%{F#${ACCENT#\#}}${FILLED}%{F-}%{F#606060}${EMPTIES}%{F-}%{T-}"
+}
+
 case $1 in
     up)
         up
@@ -66,8 +106,11 @@ case $1 in
     mute)
         mute
         ;;
+    status)
+        status
+        ;;
     *)
-        echo "Usage: $(basename $0) [up|down|mute]"
+        echo "Usage: $(basename $0) [up|down|mute|status]"
         exit 1
         ;;
 esac
