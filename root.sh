@@ -40,7 +40,7 @@ install_addons () {
 	sleep 3
 	echo ""
 	cd ${RUTE} ; cp -r scripts /root
-	cd ${RUTE}/root ; cp -r .p10k.zsh /root; cp -r ${REAL_HOME}/.zshrc /root/.zshrc
+	cd ${RUTE}/root ; cp -r .p10k.zsh /root; cp -r ${RUTE}/root/.zshrc /root/.zshrc
 	cd /root ; git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
 	echo ""
 	cd /root ; git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
