@@ -32,7 +32,6 @@ y_pos=$((($height - $HEIGHT) / 2))
 
 # Set floating and center the focused window
 bspc node -t floating -g hidden=off
-bspc node -g state=floating
 
 # Try to resize using xdotool (if available)
 if which xdotool >/dev/null 2>&1; then
