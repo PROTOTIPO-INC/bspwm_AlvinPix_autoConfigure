@@ -26,10 +26,9 @@ bspc config gapless_monocle      true
 
 bspc config focus_follows_pointer true
 bspc config pointer_follows_focus true
-bspc config gapless_monocle true
 bspc config paddingless_monocle true
 
-bspc rule -a 'Gnome-terminal' state=floating rectangle=1000x600+150+150 center=true
+bspc rule -a 'kitty' state=floating rectangle=1000x600+150+150 center=true
 bspc rule -a 'Google-chrome' desktop='II'
 bspc rule -a 'firefox' desktop='II'
 bspc rule -a 'SimpleScreenRecorder' state=floating follow=on

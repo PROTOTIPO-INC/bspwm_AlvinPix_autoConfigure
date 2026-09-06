@@ -30,12 +30,17 @@ exit
 fi
 
 install_addons () {
+	# Detectar el usuario no-root que ejecuto el script (via sudo)
+	local REAL_USER="${SUDO_USER:-$(whoami)}"
+	local REAL_HOME="/home/${REAL_USER}"
+
 	echo ""
 	echo -e "${White} [${Blue}i${White}] Last step installing the powerlevel10k, fzf, sudo-plugin, and others for the root user"
+	echo -e "${White} [${Blue}i${White}] Real user detected: ${Red}${REAL_USER}${White}"
 	sleep 3
 	echo ""
 	cd ${RUTE} ; cp -r scripts /root
-	cd ${RUTE}/root ; cp -r .p10k.zsh /root; ln -s /home/oaknimrow/.zshrc /root/.zshrc
+	cd ${RUTE}/root ; cp -r .p10k.zsh /root; cp -r ${REAL_HOME}/.zshrc /root/.zshrc
 	cd /root ; git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
 	echo ""
 	cd /root ; git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf

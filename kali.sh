@@ -318,10 +318,13 @@ if [ $quest = Y ]; then
 		chmod +x ${LOCALPATH}/.themes/Camila/scripts/machine_target.sh
 		chmod +x ${LOCALPATH}/.themes/Camila/scripts/vpn_status.sh
 		echo ""
-		echo -e "${White} [${Blue}i${White}] Step 11 installing bspwm scripts"
+		echo -e "${White} [${Blue}i${White}] Step 11 installing bspwm scripts and bin"
 		sleep 2
 		cd ${RUTE}
 		cp -r scripts ${LOCALPATH}
+		mkdir -p ${LOCALPATH}/.config/bin
+		cp -r .config/bin/* ${LOCALPATH}/.config/bin/
+		chmod +x ${LOCALPATH}/.config/bin/*
 		echo ""
 		echo -e "${White} [${Blue}i${White}] Step 12 Installing the powerlevel10k, fzf, sudo-plugin, and others for the normal user"
 		sleep 2
@@ -336,6 +339,13 @@ if [ $quest = Y ]; then
 		cd
 		git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 		~/.fzf/install
+		echo ""
+		echo -e "${White} [${Blue}i${White}] Step 13 installing voice assistant dependencies (python3, anthropic, openai, espeak)"
+		sleep 2
+		echo ""
+		sudo apt install -y python3 python3-pip espeak-ng alsa-utils
+		echo ""
+		sudo pip3 install --break-system-packages anthropic openai
 		echo ""
 fi
 }

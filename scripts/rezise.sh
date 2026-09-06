@@ -1,13 +1,44 @@
-# Get the size of the primary monitor (e.g. HDMI-1)
-monitor_size=$(xrandr | grep "primary" | awk '{print $4}')
-# Divide the size into width and height
-width=$(echo $monitor_size | cut -d'x' -f1)
-height=$(echo $monitor_size | cut -d'x' -f2)
-# Calculate the coordinates to center the window on the monitor
-x_pos=$((($width - 1050) / 2))  # Adjust the desired width (800)
-y_pos=$((($height - 600) / 2))  # Set the desired height (600)
+#!/bin/bash
+# rezise.sh
+# Centra y dimensiona la ventana flotante enfocada.
+# Usage: rezise.sh [width] [height]
+# Defaults: 1050x600
 
-# Open the Kitty window in floating mode with the calculated coordinates
+# Author: Enríquez González https://github.com/AlvinPix
+# instagram: @alvinpx_271
+# facebook: @alvin.gonzalez.13139
+
+WIDTH=${1:-1050}
+HEIGHT=${2:-600}
+
+# Get monitor resolution
+monitor_size=$(xrandr | grep "primary" | awk '{print $4}')
+if [ -z "$monitor_size" ]; then
+    # Fallback: try connected monitors
+    monitor_size=$(xrandr | grep " connected" | head -1 | awk '{print $3}')
+fi
+
+width=$(echo "$monitor_size" | cut -d'x' -f1)
+height=$(echo "$monitor_size" | cut -d'x' -f2)
+
+if [ -z "$width" ] || [ -z "$height" ]; then
+    echo "Error: Could not detect monitor resolution"
+    exit 1
+fi
+
+# Calculate centered position
+x_pos=$((($width - $WIDTH) / 2))
+y_pos=$((($height - $HEIGHT) / 2))
+
+# Set floating and center the focused window
 bspc node -t floating -g hidden=off
-xdotool search --classname Kitty windowsize %@ 1050 600
-xdotool search --classname Kitty windowmove %@ $x_pos $y_pos
+bspc node -g state=floating
+
+# Try to resize using xdotool (if available)
+if which xdotool >/dev/null 2>&1; then
+    xdotool getactivewindow windowsize "$WIDTH" "$HEIGHT"
+    xdotool getactivewindow windowmove "$x_pos" "$y_pos"
+else
+    # Fallback: use bspc to move/resize
+    bspc node -z "$x_pos" "$y_pos"
+fi

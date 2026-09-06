@@ -50,6 +50,114 @@ echo -e "${Blue} ${White}[${Cyan}i${White}] If you want to exit the script use $
 echo -e "${Blue} ${White}[${Cyan}i${White}] What type of theme do you want to apply? 			  		  "
 }
 
+# LIST OF AVAILABLE THEMES (index starts at 1)
+THEMES=(Zenitsu Raven Simon Camila Ryan Esmeralda Xavier Nami)
+
+# SHOW THEMES MENU
+themes_menu () {
+echo ""
+echo -e "${Blue} ${White}[${Cyan}i${White}] Loading themes ${mode_name}..."
+echo ""
+local i
+for i in "${!THEMES[@]}"; do
+	echo -e "${Blue} [${Cyan}$((i+1))${Blue}] ${THEMES[$i]}"
+done
+echo ""
+}
+
+# APPLY A SINGLE THEME
+# apply_theme <theme_name> <mode>
+apply_theme () {
+local theme="$1"
+local mode="$2"
+local tdir="${THEMEDIR}/${theme}"
+
+echo ""
+if [ "$mode" = "normal" ]; then
+	echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[${theme}]${NC}"
+	cd ${tdir}/kitty
+	cp color.ini ${CONDIR}/.config/kitty
+	cd ${tdir}
+	cp bspwmrc ${CONDIR}/.config/bspwm
+	cd ${tdir}/polybar
+	cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
+	cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
+else
+	echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[${theme}]${NC}"
+	cd ${tdir}/kitty
+	cp color.ini ${CONDIR}/.config/kitty
+	cd ${tdir}
+	cp bspwmrc ${CONDIR}/.config/bspwm
+	cd ${tdir}/polybar
+	cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
+	cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
+	cd ${tdir}/bar_pentest
+	cp config.ini ${CONDIR}/.config/polybar/cuts
+	cd ${tdir}/scripts
+	cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
+	# Copia los scripts de gestion de target desde el area comun (~/scripts)
+	cp ${CONDIR}/scripts/machine_menu.sh ${CONDIR}/scripts/set_target.sh ${CONDIR}/.config/polybar/cuts/scripts/
+fi
+
+# Colorear cava segun el tema (el foreground hex fuerza modo ncurses automatico)
+CAVA_CFG="${CONDIR}/.config/cava/config"
+CAVA_FG="$(grep -E '^foreground' ${tdir}/kitty/color.ini | awk '{print $2}')"
+if [ -f "${CAVA_CFG}" ] && [ -n "${CAVA_FG}" ]; then
+	sed -i "s/^foreground = .*/foreground = '${CAVA_FG}'/" "${CAVA_CFG}"
+fi
+
+# Colorear la barra de pestañas de kitty segun el accent del tema
+KITTY_CFG="${CONDIR}/.config/kitty/kitty.conf"
+ACCENT="$(grep -E '^accent' ${tdir}/polybar/colors.ini | tr -s ' ' | cut -d' ' -f3)"
+if [ -f "${KITTY_CFG}" ] && [ -n "${ACCENT}" ]; then
+	sed -i "s/^active_tab_background .*/active_tab_background ${ACCENT}/" "${KITTY_CFG}"
+	sed -i "s/^inactive_tab_background .*/inactive_tab_background ${ACCENT}/" "${KITTY_CFG}"
+	sed -i "s/^active_tab_foreground .*/active_tab_foreground #000000/" "${KITTY_CFG}"
+fi
+
+# Guardar tema activo para selector_random_wallpaper.sh
+mkdir -p ${CONDIR}/.cache
+echo "${theme}" > ${CONDIR}/.cache/active_theme
+
+echo ""
+betterlockscreen -u ${tdir}/wallpapers/wal-0.png
+echo ""
+bspc wm -r
+#polybar-msg cmd restart
+echo -e " ${White}[${Cyan}i${White}] ${Red}[${theme}]${White} theme applied correctly (${mode} mode)"
+sleep 2
+exit 0
+}
+
+# SELECT A THEME FROM A LIST
+select_theme () {
+local mode="$1"
+local choice
+
+themes_menu
+echo -ne "${Blue} ▶ ${Red}"
+read choice
+
+case "$choice" in
+	''|*[!0-9]*)	# not a number
+		echo ""
+		echo -e "${Blue} ${White}[${Cyan}i${White}] Invalid option, use numbers"
+		sleep 2
+		select_theme "$mode"
+		;;
+	*)
+		if [ "$choice" -ge 1 ] && [ "$choice" -le "${#THEMES[@]}" ]; then
+			apply_theme "${THEMES[$((choice-1))]}" "$mode"
+		else
+			echo ""
+			echo -e "${Blue} ${White}[${Cyan}i${White}] Invalid option, use numbers"
+			sleep 2
+			select_theme "$mode"
+		fi
+		;;
+esac
+}
+
 # THEAMING MODE SELECTOR
 mode () {
 clear
@@ -71,390 +179,33 @@ read mode
 case $mode in
 
 1)
-Normalthemes ;;
+mode_name="normal mode"
+select_theme normal ;;
 
 2)
-Penetrationthemes ;;
-
-*)
-echo ""
-echo -e "${Blue} ${White}[${Cyan}i${White}] Invalid option, use numbers"
-sleep 2
-mode
-esac
-}
-
-Normalthemes () {
-echo ""
-echo -e "${Blue} ${White}[${Cyan}i${White}] Loading themes normal mode..."
-echo ""
-echo -e "${Blue} [${Cyan}1${Blue}] Zenitsu"
-echo -e "${Blue} [${Cyan}2${Blue}] Raven"
-echo -e "${Blue} [${Cyan}3${Blue}] Simon"
-echo -e "${Blue} [${Cyan}4${Blue}] Camila"
-echo -e "${Blue} [${Cyan}5${Blue}] Ryan"
-echo -e "${Blue} [${Cyan}6${Blue}] Esmeralda"
-echo -e "${Blue} [${Cyan}7${Blue}] Xavier"
-echo -e "${Blue} [${Cyan}8${Blue}] Nami"
-echo ""
-echo -ne "${Blue} ▶ ${Red}"
-read nmtheme
-case $nmtheme in
-
-1)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[Zenitsu]${NC}"
-cd ${THEMEDIR}/Zenitsu/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Zenitsu
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Zenitsu/polybar
-cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-echo ""
-betterlockscreen -u ${THEMEDIR}/Zenitsu/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Zenitsu]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-2)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[Raven]${NC}"
-cd ${THEMEDIR}/Raven/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Raven
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Raven/polybar
-cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-echo ""
-betterlockscreen -u ${THEMEDIR}/Raven/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Raven]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-3)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[Simon]${NC}"
-cd ${THEMEDIR}/Simon/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Simon
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Simon/polybar
-cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-echo ""
-betterlockscreen -u ${THEMEDIR}/Simon/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Simon]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-4)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[Camila]${NC}"
-cd ${THEMEDIR}/Camila/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Camila
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Camila/polybar
-cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-echo ""
-betterlockscreen -u ${THEMEDIR}/Camila/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Camila]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-5)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[Ryan]${NC}"
-cd ${THEMEDIR}/Ryan/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Ryan
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Ryan/polybar
-cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-echo ""
-betterlockscreen -u ${THEMEDIR}/Ryan/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Ryan]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-6)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[Esmeralda]${NC}"
-cd ${THEMEDIR}/Esmeralda/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Esmeralda
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Esmeralda/polybar
-cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-echo ""
-betterlockscreen -u ${THEMEDIR}/Esmeralda/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Esmeralda]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-7)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[Xavier]${NC}"
-cd ${THEMEDIR}/Xavier/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Xavier
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Xavier/polybar
-cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-echo ""
-betterlockscreen -u ${THEMEDIR}/Xavier/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Xavier]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-8)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme ${Red}[Nami]${NC}"
-cd ${THEMEDIR}/Nami/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Nami
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Nami/polybar
-cp user_modules.ini colors.ini config.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-echo ""
-betterlockscreen -u ${THEMEDIR}/Nami/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Nami]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-*)
-echo ""
-echo -e "${Blue} ${White}[${Cyan}i${White}] Invalid option, use numbers"
-sleep 2
-mode
-esac
-}
-
-Penetrationthemes () {
-echo ""
-echo -e "${Blue} ${White}[${Cyan}i${White}] Loading themes penetration mode..."
-echo ""
-echo -e "${Blue} [${Cyan}1${Blue}] Zenitsu"
-echo -e "${Blue} [${Cyan}2${Blue}] Raven"
-echo -e "${Blue} [${Cyan}3${Blue}] Simon"
-echo -e "${Blue} [${Cyan}4${Blue}] Camila"
-echo -e "${Blue} [${Cyan}5${Blue}] Ryan"
-echo -e "${Blue} [${Cyan}6${Blue}] Esmeralda"
-echo -e "${Blue} [${Cyan}7${Blue}] Xavier"
-echo -e "${Blue} [${Cyan}8${Blue}] Nami"
-echo ""
-echo -ne "${Blue} ▶ ${Red}"
-read penetrationntheme
-case $penetrationntheme in
-
-1)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[Zenitsu]${NC}"
-cd ${THEMEDIR}/Zenitsu/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Zenitsu
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Zenitsu/polybar
-cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-cd ${THEMEDIR}/Zenitsu/bar_pentest
-cp config.ini ${CONDIR}/.config/polybar/cuts
-cd ${THEMEDIR}/Zenitsu/scripts
-cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
-echo ""
-betterlockscreen -u ${THEMEDIR}/Zenitsu/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Zenitsu]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-2)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[Raven]${NC}"
-cd ${THEMEDIR}/Raven/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Raven
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Raven/polybar
-cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-cd ${THEMEDIR}/Raven/bar_pentest
-cp config.ini ${CONDIR}/.config/polybar/cuts
-cd ${THEMEDIR}/Raven/scripts
-cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
-echo ""
-betterlockscreen -u ${THEMEDIR}/Raven/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Raven]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-3)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[Simon]${NC}"
-cd ${THEMEDIR}/Simon/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Simon
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Simon/polybar
-cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-cd ${THEMEDIR}/Simon/bar_pentest
-cp config.ini ${CONDIR}/.config/polybar/cuts
-cd ${THEMEDIR}/Simon/scripts
-cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
-echo ""
-betterlockscreen -u ${THEMEDIR}/Simon/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Simon]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-4)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[Camila]${NC}"
-cd ${THEMEDIR}/Camila/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Camila
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Camila/polybar
-cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-cd ${THEMEDIR}/Camila/bar_pentest
-cp config.ini ${CONDIR}/.config/polybar/cuts
-cd ${THEMEDIR}/Camila/scripts
-cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
-echo ""
-betterlockscreen -u ${THEMEDIR}/Camila/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Camila]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-5)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[Ryan]${NC}"
-cd ${THEMEDIR}/Ryan/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Ryan
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Ryan/polybar
-cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-cd ${THEMEDIR}/Ryan/bar_pentest
-cp config.ini ${CONDIR}/.config/polybar/cuts
-cd ${THEMEDIR}/Ryan/scripts
-cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
-echo ""
-betterlockscreen -u ${THEMEDIR}/Ryan/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Ryan]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-6)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[Esmeralda]${NC}"
-cd ${THEMEDIR}/Esmeralda/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Esmeralda
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Esmeralda/polybar
-cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-cd ${THEMEDIR}/Esmeralda/bar_pentest
-cp config.ini ${CONDIR}/.config/polybar/cuts
-cd ${THEMEDIR}/Esmeralda/scripts
-cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
-echo ""
-betterlockscreen -u ${THEMEDIR}/Esmeralda/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Esmeralda]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-7)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[Xavier]${NC}"
-cd ${THEMEDIR}/Xavier/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Xavier
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Xavier/polybar
-cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-cd ${THEMEDIR}/Xavier/bar_pentest
-cp config.ini ${CONDIR}/.config/polybar/cuts
-cd ${THEMEDIR}/Xavier/scripts
-cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
-echo ""
-betterlockscreen -u ${THEMEDIR}/Xavier/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Xavier]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
-8)
-echo ""
-echo -e " ${White}[${Cyan}i${White}] Loading theme penetration mode ${Red}[Nami]${NC}"
-cd ${THEMEDIR}/Nami/kitty
-cp color.ini ${CONDIR}/.config/kitty
-cd ${THEMEDIR}/Nami
-cp bspwmrc ${CONDIR}/.config/bspwm
-cd ${THEMEDIR}/Nami/polybar
-cp user_modules.ini colors.ini ${CONDIR}/.config/polybar/cuts
-cp colors.rasi ${CONDIR}/.config/polybar/cuts/scripts/rofi
-cd ${THEMEDIR}/Nami/bar_pentest
-cp config.ini ${CONDIR}/.config/polybar/cuts
-cd ${THEMEDIR}/Nami/scripts
-cp ethernet_status.sh machine_target.sh vpn_status.sh ${CONDIR}/.config/polybar/cuts/scripts
-echo ""
-betterlockscreen -u ${THEMEDIR}/Nami/wallpapers/wal-0.png
-echo ""
-bspc wm -r
-#polybar-msg cmd restart
-echo -e " ${White}[${Cyan}i${White}] ${Red}[Nami]${White} theme applied correctly"
-sleep 2
-exit 0 ;;
-
+mode_name="penetration mode"
+# Integracion con pentest_setup.sh: solo preguntar si hay herramientas faltantes
+MISSING="$(bash ${CONDIR}/scripts/pentest_setup.sh --check-missing 2>/dev/null)"
+if [ -z "${MISSING}" ]; then
+	echo ""
+	echo -e "${Blue} ${White}[${Cyan}i${White}] Pentest tools already installed"
+else
+	echo ""
+	echo -e "${Blue} ${White}[${Yellow}!${White}] Some pentest tools are missing:"
+	echo -e "${White}    ${MISSING}"
+	echo -e "${Blue} ${White}[${Cyan}i${White}] Do you want to install them now?"
+	echo -ne "${Blue} ${White}[${Red}Y/n${White}] ▶ "
+	read setup_opt
+	case "$setup_opt" in
+		n|N)
+			echo -e "${Blue} ${White}[${Cyan}i${White}] Skipping pentest tools setup"
+			;;
+		*)
+			sudo bash ${CONDIR}/scripts/pentest_setup.sh
+			;;
+	esac
+fi
+select_theme pentest ;;
 
 *)
 echo ""

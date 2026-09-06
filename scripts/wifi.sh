@@ -30,22 +30,30 @@ exit 1
 # USERNAME
 user=$(whoami)
 
-# HOST DISCOVERY
-lanip=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1 -d'/')
-lanip6=$(ip addr | grep 'state UP' -A4 | tail -n1 | awk '{print $2}' | cut -f1 -d'/')
-publicip=$(dig +short myip.opendns.com @resolver1.opendns.com)
-hostn=$(host "$publicip" | awk '{print $5}' | sed 's/.$//')
+# HOST DISCOVERY (safe fallbacks)
+lanip=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -1)
+lanip6=$(ip -6 addr show | grep -oP '(?<=inet6\s)[0-9a-f:]+/%?\d*' | grep -v '::1' | head -1)
+[ -z "$lanip" ] && lanip="N/A"
+[ -z "$lanip6" ] && lanip6="N/A"
+
+# Current connection info
+current_ssid=$(nmcli -t -f active,ssid dev wifi | grep '^yes:' | cut -d: -f2)
+current_signal=$(nmcli -t -f active,SIGNAL dev wifi | grep -v '^$' | head -1)
 
 # BANNER PRESENT THE SCRIPT
 banner () {
-echo -e "${White} ╔──────────────────────────╗									"
-echo -e "${White} |${Purple} ██╗    ██╗██╗███████╗██╗${White} |${Red} [ ]${White} ${lanip}			"
-echo -e "${White} |${Purple} ██║    ██║██║██╔════╝██║${White} |${Red} [󰀻 ]${White} ${lanip6}			"
-echo -e "${White} |${Purple} ██║ █╗ ██║██║█████╗  ██║${White} |${Red} []${White} ${user}			"
-echo -e "${White} |${Purple} ██║███╗██║██║██╔══╝  ██║${White} |${Red} [CTRL+C]${White} Exit			"
-echo -e "${White} |${Purple} ╚███╔███╔╝██║██║     ██║${White} |							"
-echo -e "${White} |${Purple}  ╚══╝╚══╝ ╚═╝╚═╝     ╚═╝${White} |							"
-echo -e "${White} ┖──────────────────────────┙									"
+echo -e "${White} ╔──────────────────────────────────────╗"
+echo -e "${White} |${Purple} ██╗    ██╗██╗███████╗██╗${White} | ${Cyan}[󰀻 ]${White} ${lanip}"
+echo -e "${White} |${Purple} ██║    ██║██║██╔════╝██║${White} | ${Cyan}[󰉺 ]${White} ${lanip6}"
+echo -e "${White} |${Purple} ██║ █╗ ██║██║█████╗  ██║${White} | ${Cyan}[  ]${White} ${user}"
+if [ -n "$current_ssid" ]; then
+echo -e "${White} |${Purple} ██║███╗██║██║██╔══╝  ██║${White} | ${Green}[✓]${White} ${current_ssid} (${current_signal}%)"
+else
+echo -e "${White} |${Purple} ██║███╗██║██║██╔══╝  ██║${White} | ${Yellow}[✗]${White} Not connected"
+fi
+echo -e "${White} |${Purple} ╚███╔███╔╝██║██║     ██║${White} | ${Cyan}[CTRL+C]${White} Exit"
+echo -e "${White} |${Purple}  ╚══╝╚══╝ ╚═╝╚═╝     ╚═╝${White} |"
+echo -e "${White} ┖──────────────────────────────────────┙"
 }
 
 # MAIN MENU
@@ -54,73 +62,90 @@ echo ""
 clear
 banner
 echo ""
-echo -e "${Cyan} [⇅]${White} Checking if nmcli is installed..."
-if which nmcli >/dev/null; then
-	sleep 1
+echo -e "${Cyan} [i]${White} Checking nmcli..."
+if ! which nmcli >/dev/null 2>&1; then
 	echo ""
-	echo -e "${Cyan} [i]${White} Nmcli is installed on your system!"
-	echo -e "${Cyan} [i]${White} Showing nearby WiFi networks"
-	echo ""
-	nmcli dev wifi list
-	echo ""
-	echo -e "${Cyan} [R] Refresh"
-	echo -e "${Cyan} [C] Connect"
-	echo -e "${Cyan} [P] Connect with password"
-	echo ""
-	echo -e "${Cyan} [F] Deactivate"
-	echo -e "${Cyan} [O] Enable"
-	echo ""
-	echo -ne "${White} > "
-	read wi
-	case $wi in
-	R)
-	echo ""
-	wifi ;;
-	C)
-	echo ""
-	echo -ne "${Cyan} [⇅]${White} Wi-Fi network name > ${Red}"
-	read oneconnectname
-	echo ""
-	nmcli dev wifi connect "${oneconnectname}"
+	echo -e "${Cyan} [!]${White} nmcli not found, installing..."
+	sudo apt install network-manager -y
 	sleep 2
-	wifi ;;
-	P)
-	echo ""
-	echo -ne "${Cyan} [⇅]${White} Wi-Fi network name > ${Red}"
-	read passwdconnectname
-	echo -ne "${Cyan} [⇅]${White} Wi-Fi network password > ${Red}"
-	read passwd
-	echo ""
-	nmcli dev wifi connect "${passwdconnectname}" password "${passwd}"
-	sleep 2
-	wifi ;;
-	F)
-	echo ""
-	echo -e "${Cyan} [⇅]${White} Disabling WiFi..."
-	nmcli radio wifi off
-	sleep 2
-	wifi ;;
-	O)
-	echo ""
-	echo -e "${Cyan} [⇅]${White} Enabling WiFi..."
-	nmcli radio wifi on
-	sleep 2
-	wifi ;;
-	*)
-	echo ""
-	echo -e "${Cyan} [⇅]${White} Invalid option, use the capital letters R/C/P/F/O"
-	sleep 2
-	wifi ;;
-esac
-else
-	echo ""
-	echo -e "${Cyan} [i]${White} Install nmcli on your system!"
-	sudo apt install nmcli -y
-	sleep 2
-	echo ""
-	echo -e "${Cyan} [i]${White} Nmcli is installed, launch the script again!"
+	echo -e "${Cyan} [i]${White} Installed, launch the script again!"
 	exit 1
 fi
+
+echo ""
+echo -e "${Cyan} [1]${White} Show nearby networks"
+echo -e "${Cyan} [2]${White} Connect (open)"
+echo -e "${Cyan} [3]${White} Connect with password"
+echo -e "${Cyan} [4]${White} Disconnect"
+echo -e "${Cyan} [5]${White} Enable WiFi"
+echo -e "${Cyan} [6]${White} Disable WiFi"
+echo -e "${Cyan} [7]${White} Connection status"
+echo -e "${Cyan} [Q]${White} Quit"
+echo ""
+echo -ne "${White} > "
+read wi
+case $wi in
+	1)
+	echo ""
+	nmcli dev wifi list 2>/dev/null
+	;;
+	2)
+	echo ""
+	echo -ne "${Cyan} [i]${White} Network name (SSID) > ${Red}"
+	read ssid
+	nmcli dev wifi connect "$ssid" 2>/dev/null
+	if [ $? -eq 0 ]; then
+		echo -e "${Green} [+]${White} Connected to ${ssid}"
+	else
+		echo -e "${Red} [-]${White} Failed to connect (maybe needs password?)"
+	fi
+	;;
+	3)
+	echo ""
+	echo -ne "${Cyan} [i]${White} Network name (SSID) > ${Red}"
+	read ssid
+	echo -ne "${Cyan} [i]${White} Password > ${Red}"
+	read -s passwd
+	echo ""
+	nmcli dev wifi connect "$ssid" password "$passwd" 2>/dev/null
+	if [ $? -eq 0 ]; then
+		echo -e "${Green} [+]${White} Connected to ${ssid}"
+	else
+		echo -e "${Red} [-]${White} Failed to connect"
+	fi
+	;;
+	4)
+	echo ""
+	nmcli dev disconnect wlan0 2>/dev/null
+	echo -e "${Yellow} [!]${White} Disconnected"
+	;;
+	5)
+	echo ""
+	nmcli radio wifi on
+	echo -e "${Green} [+]${White} WiFi enabled"
+	;;
+	6)
+	echo ""
+	nmcli radio wifi off
+	echo -e "${Yellow} [!]${White} WiFi disabled"
+	;;
+	7)
+	echo ""
+	echo -e "${Cyan} [i]${White} Connection status:"
+	nmcli -t -f name,device,type,state connection show --active 2>/dev/null || nmcli general status
+	echo ""
+	echo -e "${Cyan} [i]${White} IP addresses:"
+	ip -4 addr show | grep -E 'inet ' | grep -v '127.0.0.1'
+	;;
+	Q|q)
+	exit 0
+	;;
+	*)
+	echo -e "${Cyan} [!]${White} Invalid option"
+	;;
+esac
+sleep 1
+wifi
 }
 
 # CALL WIFI AND RESET

@@ -1,63 +1,73 @@
 #!/bin/sh
-# pulsevol.sh
-# PulseAudio Volume Control Script (Simplified - No sink_index or notifications)
-# Usage: pulsevol.sh [up|down|mute]
-# pulseaudio-utils
+# volume.sh
+# PulseAudio Volume Control Script
+# Usage: volume.sh [up|down|mute]
 
 # Author: Enríquez González https://github.com/AlvinPix
 # instagram: @alvinpx_271
 # facebook: @alvin.gonzalez.13139
 
-EXPECTED_ARGS=1
-E_BADARGS=65
-
-if [ $# -ne $EXPECTED_ARGS ]; then
-    echo "Usage: `basename $0` [up|down|mute]"
-    exit $E_BADARGS
+if [ $# -ne 1 ]; then
+    echo "Usage: $(basename $0) [up|down|mute]"
+    exit 65
 fi
 
-VOLSTEP=30 #30%
+VOLSTEP=5 # 5% incremental
 
+# Get default sink ID
+DEFAULT_SINK=$(pactl get-default-sink 2>/dev/null)
+if [ -z "$DEFAULT_SINK" ]; then
+    # Fallback: try pactl info
+    DEFAULT_SINK=$(pactl info | grep "Default Sink" | awk '{print $3}')
+fi
+
+# Get current volume percentage for default sink
 getvol() {
-    VOL=$(pactl list sinks | grep '^[[:space:]]Volume:' | head -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,')
+    VOL=$(pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | grep -oP '\d+%' | head -1 | tr -d '%')
+    if [ -z "$VOL" ]; then
+        VOL=0
+    fi
+}
+
+# Get mute state
+getmute() {
+    MUTED=$(pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null | grep -o "yes\|no")
 }
 
 getvol
 
 up() {
-    NEWVOL=$((VOL + VOL * VOLSTEP / 100))
-    if [ $NEWVOL -gt 100 ]; then
+    NEWVOL=$((VOL + VOLSTEP))
+    if [ "$NEWVOL" -gt 100 ]; then
         NEWVOL=100
     fi
-    pactl set-sink-volume 0 $NEWVOL%
-    getvol
+    pactl set-sink-volume @DEFAULT_SINK@ "${NEWVOL}%"
 }
 
 down() {
-    NEWVOL=$((VOL - VOL * VOLSTEP / 100))
-    if [ $NEWVOL -lt 0 ]; then
+    NEWVOL=$((VOL - VOLSTEP))
+    if [ "$NEWVOL" -lt 0 ]; then
         NEWVOL=0
     fi
-    pactl set-sink-volume 0 $NEWVOL%
-    getvol
+    pactl set-sink-volume @DEFAULT_SINK@ "${NEWVOL}%"
 }
 
 mute() {
-    pactl set-sink-mute 0 toggle > /dev/null
+    pactl set-sink-mute @DEFAULT_SINK@ toggle
 }
 
 case $1 in
-up)
-    up
-    ;;
-down)
-    down
-    ;;
-mute)
-    mute
-    ;;
-*)
-    echo "Usage: `basename $0` [up|down|mute]"
-    exit 1
-    ;;
+    up)
+        up
+        ;;
+    down)
+        down
+        ;;
+    mute)
+        mute
+        ;;
+    *)
+        echo "Usage: $(basename $0) [up|down|mute]"
+        exit 1
+        ;;
 esac

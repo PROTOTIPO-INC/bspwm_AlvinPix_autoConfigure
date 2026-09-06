@@ -1,7 +1,7 @@
-# TO-DO List
-if [ -f /home/oaknimrow/TODO-List.txt -a -f /opt/Shell-TODO-List/shell-TODO-List.sh -a -x /opt/Shell-TODO-List/shell-TODO-List.sh ]; then
-    source /opt/Shell-TODO-List/shell-TODO-List.sh
-fi
+# TO-DO List (comentado: /opt/Shell-TODO-List/shell-TODO-List.sh no está instalado)
+# if [ -f "$HOME/TODO-List.txt" -a -f /opt/Shell-TODO-List/shell-TODO-List.sh -a -x /opt/Shell-TODO-List/shell-TODO-List.sh ]; then
+#     source /opt/Shell-TODO-List/shell-TODO-List.sh
+# fi
 
 # ~/.zshrc file for zsh interactive shells.
 # see /usr/share/doc/zsh/examples/zshrc for examples
@@ -68,31 +68,9 @@ function rot13()
   echo "$@" | tr 'A-Za-z' 'N-ZA-Mn-za-m'
 }
 
-function settarget(){
-    ip_address=$1
-    machine_name=$2
-    echo "$ip_address $machine_name" > /home/oaknimrow/.config/bin/target
-}
-
-function cleartarget(){
-    echo '' > /home/oaknimrow/.config/bin/target
-}
-
 # Custom Functions
 function mkd () {
   mkdir {nmap,content,exploits}
-}
-
-function extractPorts () {
-  ports="$(cat $1 | grep -oP '\d{1,5}/open' | awk '{print $1}' FS='/' | xargs | tr ' ' ',')"
-  ip_address="$(cat $1 | grep -oP '^Host: .* \(\)' | head -n 1 | awk '{print $2}' )"
-  echo -e "\n[*] Extracting Information...\n" > extractPorts.tmp
-  echo -e "\t[*] IP Address: $ip_address" >> extractPorts.tmp
-  echo -e "\t[*] Open $ports\n" >> extractPorts.tmp
-  echo -n $ports | xclip -sel clip
-  echo -e "[*] Ports copied to clipboard\n" >> extractPorts.tmp
-  cat extractPorts.tmp
-  rm extractPorts.tmp
 }
 
 function mkj () {
@@ -475,6 +453,10 @@ function settarget(){
         fi
 }
 
+function cleartarget(){
+        echo '' > ~/.config/polybar/cuts/scripts/target
+}
+
 
 function fzf-lovely(){
 
@@ -503,11 +485,6 @@ function fzf-lovely(){
 # Finalize Powerlevel10k instant prompt. Should stay at the bottom of ~/.zshrc.
 (( ! ${+functions[p10k-instant-prompt-finalize]} )) || p10k-instant-prompt-finalize
 
-# Enable Powerlevel10k instant prompt. Should stay at the top of ~/.zshrc.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 # My aliases
 
 #alias net="sudo bash /home/alvinpix/Escritorio/PX-games/Github/Network/Network.sh"
@@ -527,6 +504,10 @@ alias cachefont="fc-cache -fv"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Asistente de voz IA (requiere ANTHROPIC_API_KEY y OPENAI_API_KEY)
+alias vox='python3 ~/scripts/voice_assistant.py'
+alias ia='python3 ~/scripts/voice_assistant.py --text'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
