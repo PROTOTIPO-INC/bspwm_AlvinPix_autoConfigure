@@ -50,7 +50,7 @@ echo ""
 echo -e "${White} [${Blue}i${White}] Step 9 installing missing dependencies"
 sleep 2
 echo ""
-sudo apt install rofi fonts-firacode fonts-cantarell lxappearance nitrogen lsd betterlockscreen flameshot git net-tools xclip xdotool -y
+sudo apt install rofi fonts-firacode fonts-cantarell lxappearance nitrogen lsd betterlockscreen i3lock flameshot git net-tools xclip xdotool -y
 echo ""
 sudo apt install scrub bat tty-clock openvpn feh pulseaudio-utils git lolcat -y
 echo ""
@@ -343,11 +343,13 @@ if [ $quest = Y ]; then
 		echo -e "${White} [${Blue}i${White}] Step 13 clone pipes, ghostscript and falcon repositories"
 		sleep 2
 		echo ""
-		cd ${LOCALPATH}/scripts ; git clone https://github.com/pipeseroni/pipes.sh.git
+		cd ${LOCALPATH}/scripts ; git clone --depth=1 https://github.com/pipeseroni/pipes.sh.git
 		echo ""
-		cd ${LOCALPATH}/scripts ; git clone https://github.com/AlvinPix/Ghost-script.git
+		# Ghost-script y Falcon ya no estan publicos en GitHub (privados/removidos).
+		# El script-manager es tolerante a su ausencia, por eso no bloquear la instalacion.
+		cd ${LOCALPATH}/scripts ; timeout 30 git clone --depth=1 https://github.com/AlvinPix/Ghost-script.git >/dev/null 2>&1 || echo -e "${Yellow}[!] Skipping Ghost-script (repo no disponible/privado)${NC}"
 		echo ""
-		cd ${LOCALPATH}/scripts ; git clone https://github.com/AlvinPix/Falcon.git
+		cd ${LOCALPATH}/scripts ; timeout 30 git clone --depth=1 https://github.com/AlvinPix/Falcon.git >/dev/null 2>&1 || echo -e "${Yellow}[!] Skipping Falcon (repo no disponible/privado)${NC}"
 		echo ""
 		echo -e "${White} [${Blue}i${White}] Step 14 installing voice assistant dependencies (python3, anthropic, openai, espeak)"
 		sleep 2
