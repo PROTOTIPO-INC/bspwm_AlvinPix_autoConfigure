@@ -75,7 +75,7 @@ ARGS=(
     --wrong-text "$WRONG_TEXT"
     --noinput-text "$NOINPUT_TEXT"
     --greeter-text "$GREETER_TEXT"
-    --no-modkeytext
+    --no-modkey-text
 )
 
 if [ -z "$LOCK_IMG" ]; then
