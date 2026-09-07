@@ -1,8 +1,9 @@
 #!/bin/bash
 # lock.sh
 # Bloqueo de pantalla con i3lock-color personalizado.
-# Usa el color de acento del tema activo (colors.ini) y el cache
-# de betterlockscreen como fondo diffumado si existe.
+# Fondo: cache de betterlockscreen (si existe), si no el wallpaper del
+# tema activo (~/.themes/<tema>/wallpapers/wal-0.png).
+# Colores de acento tomados del tema activo (colors.ini).
 #
 # Todo editable desde las variables de abajo ->
 
@@ -38,16 +39,35 @@ DATE_STR="%A, %d de %B"
 
 # tamano del indicador
 RADIUS=90
-RING_WIDTH=7
+RING_WIDTH=4
 
-LOCK_IMG=""
+# --- fondo ---
 CACHE_DIR="$HOME/.cache/betterlockscreen"
-for cand in "$CACHE_DIR/$(whoami)-dim.png" "$CACHE_DIR/$(whoami)-dimblur.png" "$CACHE_DIR/$(whoami)-lock.png" "$CACHE_DIR/$(whoami)-blur.png"; do
-    [ -f "$cand" ] && LOCK_IMG="$cand" && break
-done
+# Pon aqui la ruta de tu wallpaper si quieres un fondo propio en el lock.
+# Dejalo vacio ("") para usar, en orden: cache de betterlockscreen ->
+# wallpaper del tema activo (~/.themes/<tema>/wallpapers/wal-0.png).
+LOCK_IMAGE=""
+
+# --- fondo: 1) LOCK_IMAGE, 2) cache de betterlockscreen, 3) tema activo ---
+LOCK_IMG="$LOCK_IMAGE"
+if [ -z "$LOCK_IMG" ] && [ -d "$CACHE_DIR" ]; then
+    for f in "$CACHE_DIR"/*; do
+        case "$f" in
+            *dim*.png|*dimblur*.png|*blur*.png|*lock*.png)
+                LOCK_IMG="$f"; break ;;
+        esac
+    done
+fi
+if [ -z "$LOCK_IMG" ]; then
+    ACTIVE_FILE="$HOME/.config/polybar/cuts/.cache/active_theme"
+    if [ -f "$ACTIVE_FILE" ]; then
+        ACTIVE="$(cat "$ACTIVE_FILE" 2>/dev/null)"
+        [ -f "$HOME/.themes/$ACTIVE/wallpapers/wal-0.png" ] && \
+            LOCK_IMG="$HOME/.themes/$ACTIVE/wallpapers/wal-0.png"
+    fi
+fi
 
 ARGS=(
-    --image "$LOCK_IMG"
     --screen 1
     --clock
     --indicator
@@ -56,6 +76,11 @@ ARGS=(
     --date-str "$DATE_STR"
     --radius "$RADIUS"
     --ring-width "$RING_WIDTH"
+    --ind-pos 'x+(w/2):y+(h/2)'
+    --time-pos 'ix:iy-60'
+    --date-pos 'ix:iy-25'
+    --verif-pos 'ix:iy'
+    --wrong-pos 'ix:iy'
     --insidever-color 00000000
     --ringver-color "${A}ff"
     --insidewrong-color "$INSIDE_WRONG"
@@ -78,9 +103,8 @@ ARGS=(
     --no-modkey-text
 )
 
-if [ -z "$LOCK_IMG" ]; then
-    # sin imagen: fondo del color del tema
-    ARGS+=( --color "${A}ee" )
+if [ -n "$LOCK_IMG" ]; then
+    ARGS+=( --image "$LOCK_IMG" )
 fi
 
 exec i3lock "${ARGS[@]}"
