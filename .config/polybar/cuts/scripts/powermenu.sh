@@ -58,10 +58,10 @@ case $chosen in
         fi
         ;;
     $lock)
-		if [[ -f /usr/bin/betterlockscreen ]]; then
+		if [[ -f /usr/bin/i3lock ]]; then
+			bash ${HOME}/scripts/lock.sh
+		elif [[ -f /usr/bin/betterlockscreen ]]; then
 			betterlockscreen -l dim
-		elif [[ -f /usr/bin/i3lock ]]; then
-			i3lock
 		fi
         ;;
     $suspend)

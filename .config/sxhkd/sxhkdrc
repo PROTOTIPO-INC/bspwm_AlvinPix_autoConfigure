@@ -135,6 +135,6 @@ super + alt + 1
 super + alt + 2
 	flameshot full
 
-# betterlockscreen
+# lock screen (custom i3lock-color)
 super + x
-	betterlockscreen -l dim
+	bash ${HOME}/scripts/lock.sh
