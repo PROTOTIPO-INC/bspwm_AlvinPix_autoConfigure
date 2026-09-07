@@ -44,12 +44,19 @@ RING_WIDTH=4
 # --- fondo ---
 CACHE_DIR="$HOME/.cache/betterlockscreen"
 # Pon aqui la ruta de tu wallpaper si quieres un fondo propio en el lock.
-# Dejalo vacio ("") para usar, en orden: cache de betterlockscreen ->
-# wallpaper del tema activo (~/.themes/<tema>/wallpapers/wal-0.png).
+# Dejalo vacio ("") para usar, en orden: imagenes aleatorias de
+# ~/scripts/lock/ -> cache de betterlockscreen -> wal-0 del tema activo.
 LOCK_IMAGE=""
 
-# --- fondo: 1) LOCK_IMAGE, 2) cache de betterlockscreen, 3) tema activo ---
+# --- fondo: 1) LOCK_IMAGE, 2) ~/scripts/lock/*.png al azar, 3) cache, 4) tema ---
 LOCK_IMG="$LOCK_IMAGE"
+if [ -z "$LOCK_IMG" ]; then
+    LOCK_DIR="$HOME/scripts/lock"
+    if [ -d "$LOCK_DIR" ]; then
+        mapfile -t IMGS < <(ls "$LOCK_DIR"/*.png 2>/dev/null)
+        [ ${#IMGS[@]} -gt 0 ] && LOCK_IMG="${IMGS[$((RANDOM % ${#IMGS[@]}))]}"
+    fi
+fi
 if [ -z "$LOCK_IMG" ] && [ -d "$CACHE_DIR" ]; then
     for f in "$CACHE_DIR"/*; do
         case "$f" in
